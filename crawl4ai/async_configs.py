@@ -74,6 +74,7 @@ class BrowserConfig:
 
     def __init__(
         self,
+        browser,
         browser_type: str = "chromium",
         headless: bool = True,
         use_managed_browser: bool = False,
@@ -105,6 +106,7 @@ class BrowserConfig:
         extra_args: list = None,
         debugging_port : int = 9222,
     ):
+        self.browser = browser
         self.browser_type = browser_type
         self.headless = headless
         self.use_managed_browser = use_managed_browser
