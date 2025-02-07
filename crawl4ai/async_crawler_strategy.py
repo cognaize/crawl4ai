@@ -695,7 +695,7 @@ class AsyncPlaywrightCrawlerStrategy(AsyncCrawlerStrategy):
     """
 
     def __init__(
-            self, browser_config: BrowserConfig = None, logger: AsyncLogger = None, **kwargs
+            self, page, context, browser_config: BrowserConfig = None, logger: AsyncLogger = None, **kwargs
     ):
         """
         Initialize the AsyncPlaywrightCrawlerStrategy with a browser configuration.
@@ -708,6 +708,8 @@ class AsyncPlaywrightCrawlerStrategy(AsyncCrawlerStrategy):
         """
         # Initialize browser config, either from provided object or kwargs
         self.browser_config = browser_config or BrowserConfig.from_kwargs(kwargs)
+        self.page = page
+        self.context = context
         self.logger = logger
 
         # Initialize session management
@@ -1055,7 +1057,7 @@ class AsyncPlaywrightCrawlerStrategy(AsyncCrawlerStrategy):
         screenshot_data = None
 
         if url.startswith(("http://", "https://")):
-            return await self._crawl_web(url, config)
+            return await self._crawl_web(self.page, self.context, url, config)
 
         elif url.startswith("file://"):
             # Process local file
@@ -1092,7 +1094,7 @@ class AsyncPlaywrightCrawlerStrategy(AsyncCrawlerStrategy):
                 "URL must start with 'http://', 'https://', 'file://', or 'raw:'"
             )
 
-    async def _crawl_web(self, url: str, config: CrawlerRunConfig) -> AsyncCrawlResponse:
+    async def _crawl_web(self, page, context, url: str, config: CrawlerRunConfig) -> AsyncCrawlResponse:
         """
         Internal method to crawl web URLs with the specified configuration.
 
@@ -1117,13 +1119,6 @@ class AsyncPlaywrightCrawlerStrategy(AsyncCrawlerStrategy):
                 **(self.browser_config.user_agent_generator_config or {})
             )
 
-        # Get page for session
-        page, context = await self.browser_manager.get_page(crawlerRunConfig=config)
-
-        # Add default cookie
-        await context.add_cookies(
-            [{"name": "cookiesEnabled", "value": "true", "url": url}]
-        )
 
         # Handle navigator overrides
         if config.override_navigator or config.simulate_user or config.magic:
@@ -1459,10 +1454,10 @@ class AsyncPlaywrightCrawlerStrategy(AsyncCrawlerStrategy):
         except Exception as e:
             raise e
 
-        finally:
-            # If no session_id is given we should close the page
-            if not config.session_id:
-                await page.close()
+        # finally:
+        #     If no session_id is given we should close the page
+            # if not config.session_id:
+            #     await page.close()
 
     async def _handle_full_page_scan(self, page: Page, scroll_delay: float = 0.1):
         """

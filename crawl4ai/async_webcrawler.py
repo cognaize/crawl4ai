@@ -106,6 +106,8 @@ class AsyncWebCrawler:
 
     def __init__(
         self,
+        page,
+        context,
         crawler_strategy: Optional[AsyncCrawlerStrategy] = None,
         config: Optional[BrowserConfig] = None,
         always_bypass_cache: bool = False,
@@ -153,6 +155,8 @@ class AsyncWebCrawler:
             k:v for k, v in kwargs.items() if k in ['browser_congig', 'logger']
         }
         self.crawler_strategy = crawler_strategy or AsyncPlaywrightCrawlerStrategy(
+            page=page,
+            context=context,
             browser_config=browser_config,
             logger=self.logger,
             **params  # Pass remaining kwargs for backwards compatibility
